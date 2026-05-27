@@ -1,0 +1,5 @@
+name,city,focus,est,email,phone,website,address,membership_type,published
+ABC Education Consultancy,Kathmandu,"Australia, UK, USA",2005,info@abcedu.com,01-4444444,https://example.com,"Putalisadak, Kathmandu",Full Member,true
+Global Studies Center,Pokhara,"Canada, New Zealand",2010,contact@globalstudies.com,061-555555,https://example.com,"Chipledhunga, Pokhara",Full Member,true
+Next Gen Education,Chitwan,"Europe, Japan",2015,hello@nextgen.com,056-666666,https://example.com,"Bharatpur, Chitwan",Associate Member,true
+Test Member,Lalitpur,USA,2020,test@member.com,9841234567,https://test.com,Lalitpur,Full Member,false

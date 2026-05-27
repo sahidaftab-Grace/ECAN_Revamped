@@ -1,0 +1,465 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * ECAN Design System — Official Typography Implementation
+ * Primary: Source Sans 3
+ * Serif: Libre Baskerville
+ * Display: Poppins
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-m3-primary: var(--m3-primary);
+  --color-m3-on-primary: var(--m3-on-primary);
+  --color-m3-primary-container: var(--m3-primary-container);
+  --color-m3-on-primary-container: var(--m3-on-primary-container);
+  --color-m3-secondary: var(--m3-secondary);
+  --color-m3-on-secondary: var(--m3-on-secondary);
+  --color-m3-secondary-container: var(--m3-secondary-container);
+  --color-m3-on-secondary-container: var(--m3-on-secondary-container);
+  --color-m3-tertiary: var(--m3-tertiary);
+  --color-m3-on-tertiary: var(--m3-on-tertiary);
+  --color-m3-tertiary-container: var(--m3-tertiary-container);
+  --color-m3-on-tertiary-container: var(--m3-on-tertiary-container);
+  --color-m3-surface: var(--m3-surface);
+  --color-m3-on-surface: var(--m3-on-surface);
+  --color-outline: var(--m3-outline);
+
+  --shadow-elevation-1: var(--elevation-1);
+  --shadow-elevation-2: var(--elevation-2);
+  --shadow-elevation-3: var(--elevation-3);
+
+  /* Step 2 — Register font tokens */
+  --font-sans: 'Source Sans 3', system-ui, sans-serif;
+  --font-serif: 'Libre Baskerville', Georgia, serif;
+  --font-display: 'Poppins', system-ui, sans-serif;
+}
+
+:root {
+  --radius: 0.5rem; /* 8px medium radius for cards */
+
+  /* ECAN Professional Brand Palette (Deep Teal / Blue) */
+  --m3-primary: #005A70; /* Deep Teal/Blue */
+  --m3-on-primary: #ffffff;
+  --m3-primary-container: #b3ebff;
+  --m3-on-primary-container: #001f28;
+
+  --m3-secondary: #0f1f3d; /* Navy */
+  --m3-on-secondary: #ffffff;
+  --m3-secondary-container: #d6e2ff;
+  --m3-on-secondary-container: #001a41;
+
+  --m3-tertiary: #d4a017; /* Warm Gold */
+  --m3-on-tertiary: #ffffff;
+  --m3-tertiary-container: #ffdf9d;
+  --m3-on-tertiary-container: #251a00;
+
+  /* Neutral Grays for Text Hierarchy */
+  --m3-surface: #f8fafc;
+  --m3-on-surface: #0f172a; /* Slate 900 */
+  --m3-surface-variant: #e2e8f0; /* Slate 200 */
+  --m3-on-surface-variant: #475569; /* Slate 600 - Muted/Body */
+
+  --m3-outline: #cbd5e1; /* Slate 300 - Borders/Inputs */
+
+  /* Semantic Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Legacy compatibility mapping */
+  --navy: var(--m3-secondary);
+  --crimson: var(--m3-primary); /* keeping variable name for legacy, but it's now teal */
+  --gold: var(--m3-tertiary);
+  --cream: var(--m3-surface);
+  --slate: var(--m3-on-surface-variant);
+
+  --background: var(--m3-surface);
+  --foreground: var(--m3-on-surface);
+  --card: #ffffff;
+  --card-foreground: var(--m3-on-surface);
+  --popover: #ffffff;
+  --popover-foreground: var(--m3-on-surface);
+  --primary: var(--m3-primary);
+  --primary-foreground: var(--m3-on-primary);
+  --secondary: var(--m3-secondary);
+  --secondary-foreground: var(--m3-on-secondary);
+  --muted: #f1f5f9;
+  --muted-foreground: var(--m3-on-surface-variant);
+  --accent: var(--m3-tertiary);
+  --accent-foreground: var(--m3-on-tertiary);
+  --destructive: var(--color-danger);
+  --destructive-foreground: #ffffff;
+  --border: var(--m3-outline);
+  --input: var(--m3-outline);
+  --ring: var(--m3-primary);
+
+  /* Shadows */
+  --elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* shadow-sm */
+  --elevation-2: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* shadow-md */
+  --elevation-3: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
+}
+
+.dark {
+  --m3-primary: #ffb4a9;
+  --m3-on-primary: #690002;
+  --m3-primary-container: #930005;
+  --m3-on-primary-container: #ffdad4;
+
+  --m3-secondary: #adc6ff;
+  --m3-on-secondary: #002e69;
+  --m3-secondary-container: #004494;
+  --m3-on-secondary-container: #d6e2ff;
+
+  --m3-tertiary: #d4a017;
+  --m3-on-tertiary: #3a3000;
+  --m3-tertiary-container: #544600;
+  --m3-on-tertiary-container: #ffdf9d;
+
+  --m3-surface: #1b1b1f;
+  --m3-on-surface: #e3e2e6;
+  --m3-surface-variant: #534341;
+  --m3-on-surface-variant: #d8c2be;
+
+  --m3-outline: #a08c89;
+
+  --background: var(--m3-surface);
+  --foreground: var(--m3-on-surface);
+  --card: #232429;
+  --card-foreground: var(--m3-on-surface);
+  --border: var(--m3-outline);
+  --muted: #2a2a2f;
+}
+
+/* Step 3 — Global base styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    line-height: 1.5;
+  }
+
+  /* Hero and marketing headings — Poppins */
+  h1 {
+    font-family: var(--font-display);
+    font-size: 3rem;        /* 48px */
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  /* Page-level headings — Poppins */
+  h2 {
+    font-family: var(--font-display);
+    font-size: 2rem;        /* 32px */
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  /* Section headings — Poppins */
+  h3 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;      /* 24px */
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  /* Card/component headings — Source Sans 3 */
+  h4 {
+    font-family: var(--font-sans);
+    font-size: 1.125rem;    /* 18px */
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  h5 {
+    font-family: var(--font-sans);
+    font-size: 1rem;        /* 16px */
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  h6 {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;    /* 14px */
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  /* Body text — Source Sans 3 */
+  p {
+    font-family: var(--font-sans);
+    font-size: 1rem;        /* 16px */
+    font-weight: 400;
+    line-height: 1.7;
+  }
+
+  /* Long-form content (news articles, blog posts) — Libre Baskerville */
+  .prose {
+    color: var(--m3-on-surface);
+  }
+
+  .prose p {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.8;
+    margin-bottom: 1.75rem;
+    color: var(--m3-on-surface-variant);
+  }
+
+  .prose h2 {
+    font-family: var(--font-display);
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+    color: var(--navy);
+  }
+
+  .prose h3 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: var(--navy);
+  }
+
+  .prose ul, .prose ol {
+    margin-bottom: 1.75rem;
+    padding-left: 1.5rem;
+  }
+
+  .prose ul {
+    list-style-type: disc;
+  }
+
+  .prose ol {
+    list-style-type: decimal;
+  }
+
+  .prose li {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.8;
+    margin-bottom: 0.75rem;
+    color: var(--m3-on-surface-variant);
+  }
+
+  .prose blockquote {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    border-left: 4px solid var(--gold);
+    padding-left: 1.5rem;
+    margin: 2.5rem 0;
+    color: var(--m3-on-surface-variant);
+    font-size: 1.25rem;
+  }
+
+  .prose strong {
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  .prose a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    font-weight: 500;
+  }
+
+  ::selection {
+    background: var(--m3-primary);
+    color: #ffffff;
+  }
+}
+
+/* Step 4 — Tailwind utility classes for the type scale */
+@layer utilities {
+  /* Display / hero — Poppins Black */
+  .text-display {
+    font-family: var(--font-display);
+    font-size: 3.5rem;    /* 56px */
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+  }
+
+  /* Hero heading — Poppins Bold */
+  .text-hero {
+    font-family: var(--font-display);
+    font-size: 3rem;      /* 48px */
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  /* Section heading — Poppins Bold */
+  .text-heading {
+    font-family: var(--font-display);
+    font-size: 2rem;      /* 32px */
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  /* Subheading — Poppins SemiBold */
+  .text-subheading {
+    font-family: var(--font-display);
+    font-size: 1.5rem;    /* 24px */
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  /* Card title — Source Sans 3 Bold */
+  .text-title {
+    font-family: var(--font-sans);
+    font-size: 1.125rem;  /* 18px */
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  /* Primary body — Source Sans 3 Regular */
+  .text-body {
+    font-family: var(--font-sans);
+    font-size: 1rem;      /* 16px */
+    font-weight: 400;
+    line-height: 1.7;
+  }
+
+  /* Secondary body — Source Sans 3 Regular, muted */
+  .text-body-sm {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;  /* 14px */
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  /* Caption / meta — Source Sans 3 Light */
+  .text-caption {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;   /* 12px */
+    font-weight: 300;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+
+  /* Uppercase label — Source Sans 3 Bold */
+  .text-label {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem; /* 11px */
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Article / long-form body — Libre Baskerville */
+  .text-article {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem; /* 17px */
+    font-weight: 400;
+    line-height: 1.85;
+  }
+
+  /* Pull quote — Libre Baskerville Italic */
+  .text-pullquote {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;   /* 20px */
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  /* Step 6 — Responsive type scaling */
+  .text-display  { font-size: clamp(2rem, 5vw, 3.5rem); }
+  .text-hero     { font-size: clamp(1.75rem, 4vw, 3rem); }
+  .text-heading  { font-size: clamp(1.5rem, 3vw, 2rem); }
+  .text-subheading { font-size: clamp(1.25rem, 2.5vw, 1.5rem); }
+}
+
+@utility container-page {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+  max-width: 82rem;
+}
+
+@utility serif-display {
+  font-family: var(--font-serif);
+}
+
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.875rem; /* 14px */
+  letter-spacing: 0.1px;
+  text-transform: none;
+  font-weight: 500;
+  color: var(--m3-primary);
+}
+
+@utility badge-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em; /* tracking-wide */
+  font-weight: 600;
+}
