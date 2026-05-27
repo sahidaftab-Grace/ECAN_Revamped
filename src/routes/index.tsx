@@ -419,7 +419,7 @@ function Hero() {
                   </div>
                   <div>
                     <p className="text-3xl font-bold text-[var(--navy)] leading-none tabular-nums" style={{ fontFamily: "var(--font-display)" }}>
-                      27+
+                      29+
                     </p>
                     <p className="text-xs font-bold text-[var(--slate)] mt-1 uppercase tracking-wider">Years of Excellence</p>
                   </div>
@@ -487,7 +487,7 @@ function StatItem({
 function Stats() {
   const stats = [
     {
-      target: 27,
+      target: 29,
       suffix: "+",
       label: "Years of Trust",
       sub: "Established 1997",
@@ -508,7 +508,7 @@ function Stats() {
       color: "text-[var(--primary)]",
     },
     {
-      target: 100,
+      target: 200,
       suffix: "K+",
       label: "Successful Students",
       sub: "Global Impact",
@@ -724,7 +724,7 @@ function About() {
               transition={{ delay: 0.4 }}
               className="mt-10"
             >
-              <Button asChild variant="outline" size="lg" className="border-white/30 text-white hover:bg-white hover:text-[var(--navy)] h-14 rounded-2xl px-8">
+              <Button asChild variant="outline" size="lg" className="border-white/30 text-black hover:bg-white hover:text-[var(--navy)] h-14 rounded-2xl px-8">
                 <Link to="/about">
                   Discover Our History
                   <ArrowRight className="h-4 w-4 ml-2" />
