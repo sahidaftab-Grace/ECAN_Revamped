@@ -1,8 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
 import { MapPin, Phone, ArrowLeft, Crown, Users } from "lucide-react";
 import { branches } from "@/data/branches";
-import type { BranchMember } from "@/data/branches";
+import type { Branch, BranchMember } from "@/data/branches";
+
+const COMMITTEE_LIMIT = 9;
 
 export const Route = createFileRoute("/branch-board/$branch")({
   component: BranchDetailPage,
@@ -16,8 +19,11 @@ export const Route = createFileRoute("/branch-board/$branch")({
   }),
 });
 
-// ── Role priority for sorting (president first) ───────────────────────────────
+type EditableBranchMember = BranchMember & { sort_order?: number };
+
+// ── Role priority for sorting ─────────────────────────────────────────────────
 const ROLE_ORDER = [
+  "founder president",
   "president",
   "vice president",
   "immediate past president",
@@ -27,9 +33,50 @@ const ROLE_ORDER = [
   "joint treasurer",
 ];
 function roleRank(role: string) {
-  const r = role.toLowerCase();
+  const r = (role || "Executive Member").toLowerCase();
   const idx = ROLE_ORDER.findIndex((k) => r.includes(k));
   return idx === -1 ? 99 : idx;
+}
+
+function normalizeRole(role: string) {
+  return (role || "Executive Member").trim().toLowerCase();
+}
+
+function isFounderPresident(member: EditableBranchMember) {
+  const role = normalizeRole(member.role);
+  return role.includes("founder") && role.includes("president");
+}
+
+function isPresident(member: EditableBranchMember) {
+  const role = normalizeRole(member.role);
+  return role.includes("president") && !role.includes("founder") && !role.includes("immediate past");
+}
+
+function uniqueMembers(members: Array<EditableBranchMember | undefined>) {
+  const seen = new Set<string>();
+  return members.filter((member): member is EditableBranchMember => {
+    if (!member) return false;
+    const key = `${member.name}-${member.role}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function getCommitteeLayout(members: EditableBranchMember[]) {
+  const sorted = [...members].sort((a, b) => {
+    const rank = roleRank(a.role) - roleRank(b.role);
+    if (rank !== 0) return rank;
+    return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+  });
+  const founderPresident = sorted.find(isFounderPresident);
+  const president = sorted.find(isPresident) || sorted.find((member) => normalizeRole(member.role).includes("president"));
+  const leaders = uniqueMembers([president, founderPresident]);
+  const committee = sorted
+    .filter((member) => !leaders.includes(member))
+    .slice(0, Math.max(0, COMMITTEE_LIMIT - leaders.length));
+
+  return { leaders, committee, totalShown: Math.min(sorted.length, COMMITTEE_LIMIT) };
 }
 
 // ── Avatar ────────────────────────────────────────────────────────────────────
@@ -58,25 +105,31 @@ function Avatar({
   );
 }
 
-// ── President featured card ───────────────────────────────────────────────────
-function PresidentCard({ member, gradient }: { member: BranchMember; gradient: string }) {
+// ── Featured leader card ──────────────────────────────────────────────────────
+function PresidentCard({
+  member,
+  gradient,
+}: {
+  member: BranchMember;
+  gradient: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="mb-10 rounded-2xl overflow-hidden border-2 border-[var(--navy)] shadow-xl bg-[var(--navy)] text-white"
+      className="rounded-2xl overflow-hidden border-2 border-[var(--navy)] shadow-xl bg-[var(--navy)] text-white"
     >
-      <div className="grid md:grid-cols-3">
-        <div className="aspect-[4/3] md:aspect-auto overflow-hidden">
+      <div className="grid sm:grid-cols-5">
+        <div className="aspect-[4/3] sm:col-span-2 sm:aspect-auto overflow-hidden">
           <Avatar name={member.name} photo={member.photo} gradient={gradient} />
         </div>
-        <div className="md:col-span-2 flex flex-col justify-center p-8 md:p-12">
+        <div className="sm:col-span-3 flex flex-col justify-center p-6 md:p-8">
           <span className="inline-flex items-center gap-2 text-[var(--gold)] text-xs font-bold tracking-[0.2em] uppercase mb-4">
-            <Crown className="h-4 w-4" /> President
+            <Crown className="h-4 w-4" /> {member.role}
           </span>
           <h2
-            className="text-3xl md:text-4xl leading-tight"
+            className="text-2xl md:text-3xl leading-tight"
             style={{ fontFamily: "var(--font-display)" }}
           >
             {member.name}
@@ -130,11 +183,33 @@ function MemberCard({
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 function BranchDetailPage() {
-  const branch = Route.useLoaderData();
+  const fallbackBranch = Route.useLoaderData();
+  const [branchRows, setBranchRows] = useState<any[]>([]);
 
-  const sorted = [...branch.members].sort((a, b) => roleRank(a.role) - roleRank(b.role));
-  const president = sorted[0];
-  const rest = sorted.slice(1);
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/branch-board")
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed to load branch board"))))
+      .then((rows) => {
+        if (!cancelled && Array.isArray(rows)) setBranchRows(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setBranchRows([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const branch = useMemo(() => {
+    if (!branchRows.length) return fallbackBranch;
+    return groupBranchRows(branchRows).find((item) => item.slug === fallbackBranch.slug) || fallbackBranch;
+  }, [branchRows, fallbackBranch]);
+
+  const { leaders, committee, totalShown } = getCommitteeLayout(branch.members as EditableBranchMember[]);
+  const displayLeaders = leaders.length > 0 ? leaders : branch.members.slice(0, 1);
 
   return (
     <div className="bg-[#f8fafc] min-h-screen">
@@ -168,7 +243,7 @@ function BranchDetailPage() {
               <Phone size={13} /> {branch.contact}
             </span>
             <span className="flex items-center gap-1.5">
-              <Users size={13} /> {branch.members.length} executive members
+              <Users size={13} /> {totalShown} executive members
             </span>
           </div>
         </div>
@@ -183,18 +258,59 @@ function BranchDetailPage() {
           Executive Committee
         </h2>
 
-        {/* President featured */}
-        <PresidentCard member={president} gradient={branch.color} />
+        {/* Featured leaders */}
+        {displayLeaders.length > 0 && (
+          <div className="mb-10 grid lg:grid-cols-2 gap-6">
+            {displayLeaders.map((member) => (
+              <PresidentCard key={`${member.name}-${member.role}`} member={member} gradient={branch.color} />
+            ))}
+          </div>
+        )}
 
         {/* Rest of committee */}
-        {rest.length > 0 && (
+        {committee.length > 0 && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {rest.map((m, i) => (
-              <MemberCard key={m.name} member={m} gradient={branch.color} index={i} />
+            {committee.map((m, i) => (
+              <MemberCard key={`${m.name}-${m.role}`} member={m} gradient={branch.color} index={i} />
             ))}
           </div>
         )}
       </section>
     </div>
   );
+}
+
+function groupBranchRows(rows: any[]): Branch[] {
+  const groups = new Map<string, any>();
+
+  rows.forEach((row) => {
+    const slug = row.branch_slug || "branch";
+    if (!groups.has(slug)) {
+      groups.set(slug, {
+        slug,
+        name: row.branch_name || slug,
+        province: row.province || "",
+        color: row.color || "from-slate-700 to-slate-900",
+        accent: row.accent || "bg-slate-500",
+        contact: row.contact || "",
+        branch_sort_order: row.branch_sort_order ?? 0,
+        members: [],
+      });
+    }
+
+    const branch = groups.get(slug);
+    branch.members.push({
+      name: row.name,
+      role: row.role || "Executive Member",
+      photo: row.image_url || null,
+      sort_order: row.sort_order ?? 0,
+    });
+  });
+
+  return Array.from(groups.values())
+    .map((branch) => ({
+      ...branch,
+      members: branch.members.sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
+    }))
+    .sort((a, b) => (a.branch_sort_order ?? 0) - (b.branch_sort_order ?? 0));
 }

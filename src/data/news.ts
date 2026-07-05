@@ -41,12 +41,12 @@ export interface BlogPost {
 
 export const newsItems: NewsItem[] = [
   {
-    id: "ecan-smart-2-launch",
-    title: "ECAN Launches Smart 2.0 Initiative for Ethical Consultancy",
+    id: "ecan-ethical-consultancy-framework",
+    title: "ECAN Strengthens Ethical Consultancy and Student Protection",
     excerpt:
-      "ECAN's Smart 2.0 initiative sets a new benchmark for transparency and student welfare in Nepal's outbound education sector.",
+      "ECAN's renewed framework sets a new benchmark for transparency and student welfare in Nepal's outbound education sector.",
     content:
-      "The Educational Consultancy Association of Nepal (ECAN) has officially launched its Smart 2.0 initiative, a comprehensive framework designed to elevate ethical standards across member consultancies.\n\nThe initiative focuses on three pillars: student security, information integrity, and institutional accountability. All ECAN member consultancies are required to comply with the new standards by mid-2025.\n\nPresident Laxman Poudel (Andrew) stated that Smart 2.0 represents a generational shift in how Nepal's education consultancy sector operates. The framework introduces mandatory annual audits, a public complaints portal, and a verified member badge system that students and parents can use to identify trustworthy consultancies.\n\nThe launch event was attended by over 300 member consultancies, government representatives, and international education partners. The initiative has already received endorsement from the Ministry of Education, Science and Technology.",
+      "The Educational Consultancy Association of Nepal (ECAN) has strengthened its ethical consultancy and student protection framework to elevate standards across member consultancies.\n\nThe framework focuses on three pillars: student security, information integrity, and institutional accountability. All ECAN member consultancies are required to comply with the new standards by mid-2025.\n\nPresident Laxman Poudel (Andrew) stated that this renewed focus represents a generational shift in how Nepal's education consultancy sector operates. The framework introduces annual reviews, a public complaints portal, and a verified member badge system that students and parents can use to identify trustworthy consultancies.\n\nThe launch event was attended by over 300 member consultancies, government representatives, and international education partners. The initiative has already received endorsement from the Ministry of Education, Science and Technology.",
     date: "2025-03-15",
     category: "announcement",
     image: heroImage,
@@ -116,7 +116,7 @@ export const newsItems: NewsItem[] = [
     excerpt:
       "New branches in Dharan and Pokhara strengthen ECAN's presence across Nepal's major education hubs.",
     content:
-      "ECAN has inaugurated two new regional branches in Dharan and Pokhara, bringing the total number of active branches to ten. The expansion is part of ECAN's strategic plan to provide localised support to students and consultancies across Nepal's major cities.\n\nThe Pokhara branch will serve the Gandaki Province, covering Kaski, Lamjung, Syangja, and surrounding districts. The Dharan branch will serve the eastern Koshi Province, complementing the existing Jhapa and Purbanchal branches.\n\nEach new branch has an elected executive committee of seven members and will hold quarterly regional events, workshops, and student counselling sessions. The branches will also serve as local points of contact for the Smart 2.0 complaints portal.\n\nWith ten active branches, ECAN now has a physical presence in all seven provinces of Nepal, fulfilling a key objective of the 2022–2026 strategic plan.",
+      "ECAN has inaugurated two new regional branches in Dharan and Pokhara, bringing the total number of active branches to ten. The expansion is part of ECAN's strategic plan to provide localised support to students and consultancies across Nepal's major cities.\n\nThe Pokhara branch will serve the Gandaki Province, covering Kaski, Lamjung, Syangja, and surrounding districts. The Dharan branch will serve the eastern Koshi Province, complementing the existing Jhapa and Purbanchal branches.\n\nEach new branch has an elected executive committee of seven members and will hold quarterly regional events, workshops, and student counselling sessions. The branches will also serve as local points of contact for ECAN's complaints and student support channels.\n\nWith ten active branches, ECAN now has a physical presence in all seven provinces of Nepal, fulfilling a key objective of the 2022–2026 strategic plan.",
     date: "2024-08-18",
     category: "announcement",
     image: himalaya,

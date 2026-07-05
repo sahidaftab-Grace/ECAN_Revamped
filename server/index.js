@@ -18,9 +18,12 @@ app.use('/api/news', require('./routes/news'))
 app.use('/api/blogs', require('./routes/blogs'))
 app.use('/api/members', require('./routes/members'))
 app.use('/api/board', require('./routes/board'))
+app.use('/api/past-board', require('./routes/pastBoard'))
+app.use('/api/branch-board', require('./routes/branchBoard'))
 app.use('/api/events', require('./routes/events'))
 app.use('/api/upload', require('./routes/upload'))
 app.use('/api/submissions', require('./routes/submissions'))
+app.use('/api/home-content', require('./routes/homeContent'))
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

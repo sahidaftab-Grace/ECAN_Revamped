@@ -43,7 +43,7 @@ import heroImage from "@/assets/Hero_image.jpeg";
 import presidentPicnic from "@/assets/president_picnic.jpg";
 import ecanElection from "@/assets/ecan_election.jpg";
 import ecanProtocol from "@/assets/ecan_protocal .jpg";
-import { board, events, services } from "@/data/board";
+import { board, events } from "@/data/board";
 
 // Import board member photos
 import president from "@/assets/1_-_President_-_Laxman_Andrew_Poudel.jpeg";
@@ -72,6 +72,90 @@ export const Route = createFileRoute("/")({
 });
 
 const eventImages = [ecanElection, presidentPicnic, ecanProtocol];
+const defaultHeroSlides = [heroImage, ecanElection, presidentPicnic, ecanProtocol, gallery8, gallery9];
+const defaultHomeHero = {
+  eyebrow: "Shaping the Nation's Future Through Global Education",
+  title: "Empowering Nepal's",
+  highlighted_text: "Future Leaders",
+  title_suffix: "to Reach the World.",
+  intro:
+    "ECAN is the national heartbeat of Nepal's educational consultancies. Since 1997, we've guided over 100,000 students to international success through integrity and professional excellence.",
+  primary_cta_label: "Become a Member",
+  primary_cta_url: "/contact",
+  secondary_cta_label: "Find a Consultancy",
+  secondary_cta_url: "/members",
+  trust_badges: ["Govt. Registered", "Global Network", "600+ Members"],
+  overlay_eyebrow: "Our impact in focus",
+  overlay_title: "Bridging aspirations to global opportunities.",
+  floating_value: "29+",
+  floating_label: "Years of Excellence",
+  images: [] as string[],
+};
+const defaultHomeStats = [
+  {
+    target: 29,
+    suffix: "+",
+    label: "Years of Trust",
+    sub: "Established 1997",
+    color: "text-[var(--primary)]",
+  },
+  {
+    target: 600,
+    suffix: "+",
+    label: "Accredited Members",
+    sub: "Verified Agencies",
+    color: "text-[var(--navy)]",
+  },
+  {
+    target: 40,
+    suffix: "+",
+    label: "Global Destinations",
+    sub: "Across 6 Continents",
+    color: "text-[var(--primary)]",
+  },
+  {
+    target: 200,
+    suffix: "K+",
+    label: "Successful Students",
+    sub: "Global Impact",
+    color: "text-[var(--navy)]",
+  },
+];
+const defaultHomePillars = {
+  eyebrow: "The Foundation of Trust",
+  title: "Four Pillars of Excellence",
+  highlighted_text: "Excellence",
+  intro:
+    "ECAN is the heartbeat of Nepal's educational consultancy sector. We don't just monitor — we lead, providing a platform where students can dream with absolute confidence.",
+  cta_label: "Learn More About Our Mission",
+  cta_url: "/about",
+  pillars: [
+    {
+      title: "Verified Excellence",
+      body: "Access Nepal's only vetted network of certified educational consultancies — every member held to ECAN's uncompromising code of ethics.",
+      href: "/members",
+      icon: "badge-check",
+    },
+    {
+      title: "Industry Pulse",
+      body: "Stay ahead with global summits, policy dialogues, and professional workshops that define the future of outbound education.",
+      href: "/events",
+      icon: "globe",
+    },
+    {
+      title: "Knowledge Hub",
+      body: "Master your practice with exclusive country briefs, counsellor handbooks, and research that keeps you at the cutting edge.",
+      href: "/about",
+      icon: "library",
+    },
+    {
+      title: "Seamless Testing",
+      body: "Secure your future with our streamlined, member-trusted IELTS portal — built for speed, reliability, and student confidence.",
+      href: "/contact",
+      icon: "pen-line",
+    },
+  ],
+};
 const boardPhotos = [
   president,
   pastPresident,
@@ -227,13 +311,35 @@ function Index() {
 }
 
 function Hero() {
-  const slides = [heroImage, ecanElection, presidentPicnic, ecanProtocol, gallery8, gallery9];
+  const [heroContent, setHeroContent] = useState(defaultHomeHero);
+  const slides = heroContent.images?.length ? heroContent.images : defaultHeroSlides;
   const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch("/api/home-content/home-hero", { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (payload?.data) {
+          setHeroContent({ ...defaultHomeHero, ...payload.data });
+        }
+      })
+      .catch((error) => {
+        if (error.name !== "AbortError") setHeroContent(defaultHomeHero);
+      });
+
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     const t = setInterval(() => setCurrent((c) => (c + 1) % slides.length), 5000);
     return () => clearInterval(t);
   }, [slides.length]);
+
+  useEffect(() => {
+    if (current >= slides.length) setCurrent(0);
+  }, [current, slides.length]);
 
   function goTo(idx: number) {
     setCurrent(idx);
@@ -270,7 +376,7 @@ function Hero() {
                   <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-60 animate-ping" />
                   <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[var(--primary)]" />
                 </span>
-                <span className="text-label text-[var(--navy)]">Smart ECAN 2.0 is Live</span>
+                <span className="text-label text-[var(--navy)]">{heroContent.eyebrow}</span>
               </div>
             </motion.div>
 
@@ -280,14 +386,14 @@ function Hero() {
               transition={{ duration: 0.7, delay: 0.1 }}
               className="mt-8 text-hero text-[var(--navy)] leading-[1.1]"
             >
-              Empowering Nepal's <br />
+              {heroContent.title} <br />
               <span className="text-[var(--primary)] relative">
-                Future Leaders
+                {heroContent.highlighted_text}
                 <svg className="absolute -bottom-2 left-0 w-full h-3 text-[var(--gold)]/30" viewBox="0 0 100 10" preserveAspectRatio="none">
                   <path d="M0 5 Q 25 0, 50 5 T 100 5" fill="none" stroke="currentColor" strokeWidth="2" />
                 </svg>
               </span> <br />
-              to Reach the World.
+              {heroContent.title_suffix}
             </motion.h1>
 
             <motion.p
@@ -296,9 +402,7 @@ function Hero() {
               transition={{ duration: 0.7, delay: 0.2 }}
               className="mt-8 text-[17px] font-medium text-[var(--slate)] max-w-xl leading-relaxed"
             >
-              ECAN is the national heartbeat of Nepal's educational consultancies. 
-              Since 1997, we've guided over <span className="text-[var(--navy)] font-bold">100,000 students</span> to 
-              international success through integrity and professional excellence.
+              {heroContent.intro}
             </motion.p>
 
             <motion.div
@@ -308,14 +412,14 @@ function Hero() {
               className="mt-10 flex flex-wrap items-center gap-4"
             >
               <Button asChild size="lg" className="h-14 px-8 rounded-2xl shadow-xl shadow-[var(--primary)]/20">
-                <Link to="/contact">
-                  Become a Member
+                <Link to={heroContent.primary_cta_url as any}>
+                  {heroContent.primary_cta_label}
                   <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
               <Button variant="outline" asChild size="lg" className="h-14 px-8 rounded-2xl border-2 border-[var(--navy)] text-[var(--navy)] hover:bg-[var(--navy)] hover:text-white transition-all">
-                <Link to="/members">
-                  Find a Consultancy
+                <Link to={heroContent.secondary_cta_url as any}>
+                  {heroContent.secondary_cta_label}
                   <ArrowUpRight className="h-5 w-5 ml-2" />
                 </Link>
               </Button>
@@ -327,18 +431,22 @@ function Hero() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-4"
             >
-              {[
-                { Icon: ShieldCheck, text: "Govt. Registered", color: "text-emerald-600" },
-                { Icon: Globe2, text: "Global Network", color: "text-blue-600" },
-                { Icon: Star, text: "600+ Members", color: "text-amber-500" },
-              ].map(({ Icon, text, color }) => (
+              {(heroContent.trust_badges || defaultHomeHero.trust_badges).slice(0, 3).map((text, index) => {
+                const options = [
+                  { Icon: ShieldCheck, color: "text-emerald-600" },
+                  { Icon: Globe2, color: "text-blue-600" },
+                  { Icon: Star, color: "text-amber-500" },
+                ];
+                const { Icon, color } = options[index] || options[0];
+
+                return (
                 <div key={text} className="flex items-center gap-2.5 group">
                   <div className={`h-10 w-10 rounded-xl bg-white border border-slate-100 shadow-sm flex items-center justify-center transition-all group-hover:scale-110 ${color}`}>
                     <Icon className="h-5 w-5" />
                   </div>
                   <span className="text-sm font-bold text-[var(--navy)]/80">{text}</span>
                 </div>
-              ))}
+              )})}
             </motion.div>
           </div>
 
@@ -370,9 +478,9 @@ function Hero() {
                 <div className="absolute bottom-10 left-10 right-10 z-20">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-white/60 text-label mb-2">Our impact in focus</p>
+                      <p className="text-white/60 text-label mb-2">{heroContent.overlay_eyebrow}</p>
                       <h3 className="text-white text-2xl font-bold font-display">
-                        Bridging aspirations to <br /> global opportunities.
+                        {heroContent.overlay_title}
                       </h3>
                     </div>
                     <div className="flex items-center gap-2">
@@ -419,9 +527,9 @@ function Hero() {
                   </div>
                   <div>
                     <p className="text-3xl font-bold text-[var(--navy)] leading-none tabular-nums" style={{ fontFamily: "var(--font-display)" }}>
-                      29+
+                      {heroContent.floating_value}
                     </p>
-                    <p className="text-xs font-bold text-[var(--slate)] mt-1 uppercase tracking-wider">Years of Excellence</p>
+                    <p className="text-xs font-bold text-[var(--slate)] mt-1 uppercase tracking-wider">{heroContent.floating_label}</p>
                   </div>
                 </div>
               </motion.div>
@@ -485,36 +593,32 @@ function StatItem({
 }
 
 function Stats() {
-  const stats = [
-    {
-      target: 29,
-      suffix: "+",
-      label: "Years of Trust",
-      sub: "Established 1997",
-      color: "text-[var(--primary)]",
-    },
-    {
-      target: 600,
-      suffix: "+",
-      label: "Accredited Members",
-      sub: "Verified Agencies",
-      color: "text-[var(--navy)]",
-    },
-    {
-      target: 40,
-      suffix: "+",
-      label: "Global Destinations",
-      sub: "Across 6 Continents",
-      color: "text-[var(--primary)]",
-    },
-    {
-      target: 200,
-      suffix: "K+",
-      label: "Successful Students",
-      sub: "Global Impact",
-      color: "text-[var(--navy)]",
-    },
-  ];
+  const [stats, setStats] = useState(defaultHomeStats);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch("/api/home-content/home-stats", { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        const rows = payload?.data?.stats;
+        if (!Array.isArray(rows) || rows.length === 0) return;
+
+        setStats(
+          rows.slice(0, 4).map((item, index) => ({
+            ...defaultHomeStats[index],
+            ...item,
+            target: Number(item.target) || defaultHomeStats[index]?.target || 0,
+            color: item.color === "navy" ? "text-[var(--navy)]" : "text-[var(--primary)]",
+          })),
+        );
+      })
+      .catch((error) => {
+        if (error.name !== "AbortError") setStats(defaultHomeStats);
+      });
+
+    return () => controller.abort();
+  }, []);
 
   return (
     <section className="relative py-12 bg-white">
@@ -530,6 +634,38 @@ function Stats() {
 }
 
 function Services() {
+  const [content, setContent] = useState(defaultHomePillars);
+  const pillarCards = content.pillars?.length ? content.pillars.slice(0, 4) : defaultHomePillars.pillars;
+  const titlePrefix =
+    content.highlighted_text && content.title.includes(content.highlighted_text)
+      ? content.title.replace(content.highlighted_text, "").trim()
+      : content.title;
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch("/api/home-content/home-pillars", { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        const data = payload?.data;
+        if (!data || typeof data !== "object") return;
+        const incomingPillars = Array.isArray(data.pillars) ? data.pillars.slice(0, 4) : defaultHomePillars.pillars;
+        setContent({
+          ...defaultHomePillars,
+          ...data,
+          pillars: incomingPillars.map((pillar: any, index: number) => ({
+            ...defaultHomePillars.pillars[index],
+            ...pillar,
+          })),
+        });
+      })
+      .catch((error) => {
+        if (error.name !== "AbortError") setContent(defaultHomePillars);
+      });
+
+    return () => controller.abort();
+  }, []);
+
   const ICONS = {
     "badge-check": (
       <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" className="h-7 w-7">
@@ -577,7 +713,7 @@ function Services() {
             className="eyebrow inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100"
           >
             <Sparkles className="h-4 w-4 text-[var(--gold)]" />
-            The Foundation of Trust
+            {content.eyebrow}
           </motion.p>
           <motion.h2 
             initial={{ opacity: 0, y: 10 }}
@@ -586,7 +722,10 @@ function Services() {
             transition={{ delay: 0.1 }}
             className="mt-6 text-heading text-[var(--navy)] leading-tight"
           >
-            Four Pillars of <span className="italic text-[var(--primary)]">Excellence</span>
+            {titlePrefix}{" "}
+            {content.highlighted_text && (
+              <span className="italic text-[var(--primary)]">{content.highlighted_text}</span>
+            )}
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 10 }}
@@ -595,8 +734,7 @@ function Services() {
             transition={{ delay: 0.2 }}
             className="mt-6 text-lg text-[var(--slate)] font-medium leading-relaxed"
           >
-            ECAN is the heartbeat of Nepal's educational consultancy sector. We don't just monitor —
-            we lead, providing a platform where students can dream with absolute confidence.
+            {content.intro}
           </motion.p>
         </div>
 
@@ -608,10 +746,10 @@ function Services() {
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
         >
-          {services.map((s, i) => (
+          {pillarCards.map((s, i) => (
             <motion.div key={s.title} variants={cardVariants}>
               <Link
-                to={s.href}
+                to={s.href as any}
                 className="group relative block h-full rounded-[2rem] border border-slate-200 bg-white p-10 lg:p-12 hover:border-[var(--primary)] hover:shadow-2xl hover:shadow-[var(--primary)]/10 transition-all duration-500 overflow-hidden"
               >
                 {/* Subtle background glow on hover */}
@@ -620,7 +758,7 @@ function Services() {
                 <div className="flex items-center justify-between mb-10">
                   <div className="flex items-center gap-4">
                     <div className="h-14 w-14 rounded-2xl bg-slate-50 flex items-center justify-center text-[var(--navy)] group-hover:bg-[var(--primary)] group-hover:text-white transition-all duration-500 shadow-sm">
-                      {ICONS[s.icon]}
+                      {ICONS[s.icon] || ICONS["badge-check"]}
                     </div>
                   </div>
                   <div className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-[var(--primary)] group-hover:text-white transition-all duration-500">
@@ -653,8 +791,8 @@ function Services() {
         {/* Action Button */}
         <div className="mt-20 text-center">
           <Button variant="outline" asChild size="lg" className="h-14 px-10 rounded-2xl border-2 font-bold hover:bg-white hover:border-[var(--primary)] hover:text-[var(--primary)]">
-            <Link to="/about">
-              Learn More About Our Mission
+            <Link to={content.cta_url as any}>
+              {content.cta_label}
             </Link>
           </Button>
         </div>
@@ -807,7 +945,7 @@ function President() {
           
           <div className="absolute bottom-10 left-10 right-10 z-20">
             <p className="text-white text-xl font-bold font-display">Laxman (Andrew) Poudel</p>
-            <p className="text-white/70 text-label mt-1">President, ECAN (2024-2026)</p>
+            <p className="text-white/70 text-label mt-1">President, ECAN (2026 onwards)</p>
           </div>
         </div>
 
@@ -823,14 +961,10 @@ function President() {
             </p>
             <Quote className="mt-8 h-12 w-12 text-[var(--gold)]/40" />
             <blockquote className="mt-6 text-3xl md:text-4xl font-bold leading-tight text-[var(--navy)] font-display">
-              Sending a child abroad is more than an academic choice — it is a{" "}
-              <span className="text-[var(--primary)]">leap of faith.</span>
+              Every year, thousands of young Nepalis leave home in pursuit of global opportunities. Behind every journey lies a dream, a family's trust, and a nation's future.
             </blockquote>
             <p className="mt-8 text-lg text-[var(--slate)] font-medium leading-relaxed">
-              With <span className="text-[var(--navy)] font-bold">Smart ECAN 2.0</span>, our mission is to 
-              turn that leap into a confident step. We are building a future where ironclad security 
-              meets world-class opportunity — ensuring that while our students chase their dreams, 
-              their well-being remains our non-negotiable priority.
+              We are committed to ensuring that this journey is guided by transparency, accountability, and student-centered protection. Our vision is clear: to create an international education ecosystem where opportunity and security go hand in hand, empowering our youth to achieve their ambitions with confidence and peace of mind.
             </p>
             <div className="mt-10 flex items-center gap-6">
               <div className="h-px flex-1 bg-slate-100" />
@@ -1254,7 +1388,7 @@ function AppCTA() {
                 Official Application
               </p>
               <h2 className="mt-6 text-heading leading-tight text-[var(--navy)] font-display">
-                ECAN Smart 2.0 <br />
+                ECAN Mobile App <br />
                 <span className="text-[var(--primary)]">Now in your Pocket.</span>
               </h2>
               <p className="mt-8 text-lg text-[var(--slate)] font-medium leading-relaxed max-w-lg">
@@ -1327,7 +1461,7 @@ function AppCTA() {
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/10 to-[var(--gold)]/10 blur-[80px] rounded-full scale-125 -z-0" />
             <img
               src={appMockup}
-              alt="ECAN Smart 2.0 Mobile App"
+              alt="ECAN Mobile App"
               className="w-full max-w-sm md:max-w-md h-auto drop-shadow-[0_35px_35px_rgba(0,0,0,0.15)] relative z-10"
             />
           </motion.div>

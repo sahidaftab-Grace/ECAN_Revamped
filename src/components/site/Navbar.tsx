@@ -42,7 +42,7 @@ const boardDropdown = [
   {
     to: "/board-members" as const,
     label: "Board Members",
-    desc: "Current executive board 2024–2026",
+    desc: "Current executive board 2026 onwards",
     Icon: Users,
   },
   {
@@ -514,4 +514,3 @@ export function Navbar() {
     </>
   );
 }
-

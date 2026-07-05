@@ -69,6 +69,10 @@ function formatDate(iso: string) {
   });
 }
 
+function getNewsLinkId(item: NewsItem) {
+  return ((item as any).slug || item.id) as string;
+}
+
 // ── Background Decoration ─────────────────────────────────────────────────────
 function Decoration() {
   return (
@@ -103,7 +107,7 @@ function FeaturedCard({ item }: { item: NewsItem }) {
     >
       <Link
         to="/news/$id"
-        params={{ id: item.id }}
+        params={{ id: getNewsLinkId(item) }}
         className="group block relative rounded-[2.5rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden hover:border-[var(--primary)]/30 transition-all duration-700"
       >
         <div className="grid lg:grid-cols-12 items-stretch min-h-[440px]">
@@ -195,7 +199,7 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
     >
       <Link
         to="/news/$id"
-        params={{ id: item.id }}
+        params={{ id: getNewsLinkId(item) }}
         className="group block h-full bg-white rounded-[2rem] border border-slate-100 overflow-hidden hover:shadow-2xl hover:border-[var(--primary)]/20 transition-all duration-500 flex flex-col"
       >
         <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
@@ -255,15 +259,7 @@ function NewsPage() {
     fetch("/api/news")
       .then((res) => res.json())
       .then((data) => {
-        const apiItems = Array.isArray(data) ? data : [];
-        // Deduplicate by ID
-        const combined = [...apiItems];
-        newsItems.forEach(staticItem => {
-          if (!combined.find(i => i.id === staticItem.id)) {
-            combined.push(staticItem);
-          }
-        });
-        setItems(combined);
+        setItems(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch((err) => {

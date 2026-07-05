@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, Variants } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState, type ElementType } from "react";
 import {
   Crown as CrownIcon,
   History,
@@ -12,7 +12,6 @@ import {
   Users,
   Shield,
   Star,
-  Loader2,
 } from "lucide-react";
 import { PageHeader } from "@/components/site/PageHeader";
 
@@ -99,9 +98,9 @@ const officers = [
     email: "president@ecan.org.np",
     phone: "+977-1-4521487",
     isPresident: true,
-    bio: "Laxman Poudel (Andrew) is a seasoned education consultant with over two decades of experience guiding Nepali students into international higher education. As President, he leads the Smart 2.0 initiative — a landmark framework for ethical consultancy, student security, and institutional accountability.",
+    bio: "Laxman Poudel (Andrew) is a seasoned education consultant with over two decades of experience guiding Nepali students into international higher education. As President, he champions ethical consultancy, student security, institutional accountability, and globally connected opportunities.",
     quote:
-      "Sending a child abroad is a leap of faith. My mission is to turn that leap into a confident step.",
+      "Pursuing education abroad is a leap of faith. My mission is to turn that leap into a confident step.",
   },
   {
     name: "Seshraj Bhattarai",
@@ -170,7 +169,7 @@ const officers = [
     email: null,
     phone: null,
     isPresident: false,
-    bio: "Ashik Karki manages ECAN's digital communications, social media presence, and member directory. He has been central to ECAN's digital transformation including the Smart 2.0 portal.",
+    bio: "Ashik Karki manages ECAN's digital communications, social media presence, and member directory. He has been central to ECAN's digital transformation and member-facing online services.",
     quote: "Digital tools amplify our reach — but trust is still built person to person.",
   },
   {
@@ -244,6 +243,100 @@ const pastPresidentialCouncil = [
   { name: "Bishnu Hari Pandey", role: "Member — ECAN Past Presidential Council", photo: bishnuP },
 ];
 
+type BoardMember = {
+  id?: string;
+  name: string;
+  role: string;
+  photo?: string;
+  image_url?: string;
+  category?: "officer" | "executive" | "advisory" | "past-presidential";
+  term?: string;
+  sort_order?: number;
+  email?: string | null;
+  phone?: string | null;
+  bio?: string | null;
+  quote?: string | null;
+  isPresident?: boolean;
+};
+
+type BoardGroups = {
+  officers: BoardMember[];
+  executive: BoardMember[];
+  advisory: BoardMember[];
+  pastPresidential: BoardMember[];
+};
+
+const fallbackGroups: BoardGroups = {
+  officers,
+  executive: execMembers,
+  advisory: advisoryMembers,
+  pastPresidential: pastPresidentialCouncil,
+};
+
+const fallbackByName = new Map(
+  [...officers, ...execMembers, ...advisoryMembers, ...pastPresidentialCouncil].map((member) => [
+    member.name.toLowerCase(),
+    member,
+  ]),
+);
+
+function normalizeBoardMember(member: BoardMember): BoardMember {
+  const fallback = fallbackByName.get(member.name?.toLowerCase?.() || "");
+
+  return {
+    ...fallback,
+    ...member,
+    photo: member.image_url || member.photo || fallback?.photo || "",
+    email: member.email || fallback?.email || null,
+    phone: member.phone || fallback?.phone || null,
+    bio: member.bio || fallback?.bio || "",
+    quote: member.quote || fallback?.quote || "",
+    category: member.category || "officer",
+    isPresident: member.role === "President" || member.isPresident,
+  };
+}
+
+function sortBoardMembers(a: BoardMember, b: BoardMember) {
+  return (a.sort_order || 0) - (b.sort_order || 0) || a.name.localeCompare(b.name);
+}
+
+function groupBoardMembers(rows: BoardMember[]): BoardGroups {
+  if (!rows.length) return fallbackGroups;
+
+  const groups: BoardGroups = {
+    officers: [],
+    executive: [],
+    advisory: [],
+    pastPresidential: [],
+  };
+
+  rows.map(normalizeBoardMember).forEach((member) => {
+    if (member.category === "executive") groups.executive.push(member);
+    else if (member.category === "advisory") groups.advisory.push(member);
+    else if (member.category === "past-presidential") groups.pastPresidential.push(member);
+    else groups.officers.push(member);
+  });
+
+  groups.officers.sort(sortBoardMembers);
+  groups.executive.sort(sortBoardMembers);
+  groups.advisory.sort(sortBoardMembers);
+  groups.pastPresidential.sort(sortBoardMembers);
+
+  return groups;
+}
+
+function MemberImage({ m, className }: { m: BoardMember; className: string }) {
+  if (m.photo) {
+    return <img src={m.photo} alt={m.name} loading="lazy" className={className} />;
+  }
+
+  return (
+    <div className={`${className} flex items-center justify-center bg-[var(--navy)] text-white`}>
+      <span className="text-3xl font-bold">{m.name.charAt(0)}</span>
+    </div>
+  );
+}
+
 // ── Animation ─────────────────────────────────────────────────────────────────
 const container: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 const cardItem: Variants = {
@@ -252,7 +345,7 @@ const cardItem: Variants = {
 };
 
 // ── Section divider ───────────────────────────────────────────────────────────
-function SectionDivider({ label, icon: Icon }: { label: string; icon: React.ElementType }) {
+function SectionDivider({ label, icon: Icon }: { label: string; icon: ElementType }) {
   return (
     <div className="flex items-center gap-4 my-12">
       <div className="h-px flex-1 bg-[var(--border)]" />
@@ -265,7 +358,7 @@ function SectionDivider({ label, icon: Icon }: { label: string; icon: React.Elem
 }
 
 // ── President featured card ───────────────────────────────────────────────────
-function PresidentCard({ m }: { m: (typeof officers)[0] }) {
+function PresidentCard({ m }: { m: BoardMember }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 32 }}
@@ -275,17 +368,13 @@ function PresidentCard({ m }: { m: (typeof officers)[0] }) {
     >
       <div className="grid lg:grid-cols-5">
         <div className="lg:col-span-2 relative min-h-[380px] lg:min-h-0 overflow-hidden">
-          <img
-            src={m.photo}
-            alt={m.name}
-            className="absolute inset-0 w-full h-full object-cover object-[80%_10%]"
-          />
+          <MemberImage m={m} className="absolute inset-0 w-full h-full object-cover object-[80%_10%]" />
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--navy)]/50 via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-[var(--navy)]/30" />
         </div>
         <div className="lg:col-span-3 flex flex-col justify-between p-8 md:p-12">
           <div>
             <span className="inline-flex items-center gap-2 text-[var(--gold)] text-label mb-5">
-              <CrownIcon className="h-4 w-4" /> President · ECAN 2024–2026
+              <CrownIcon className="h-4 w-4" /> President · ECAN 2026 onwards
             </span>
             <h2 className="text-heading text-white">
               {m.name}
@@ -329,19 +418,14 @@ function PresidentCard({ m }: { m: (typeof officers)[0] }) {
 }
 
 // ── Officer card (bio + quote) ────────────────────────────────────────────────
-function OfficerCard({ m }: { m: (typeof officers)[0] }) {
+function OfficerCard({ m }: { m: BoardMember }) {
   return (
     <motion.div
       variants={cardItem}
       className="group bg-white rounded-2xl border-2 border-[var(--border)] overflow-hidden hover:border-[var(--navy)] hover:shadow-xl transition-all duration-300 flex flex-col"
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-[var(--muted)]">
-        <img
-          src={m.photo}
-          alt={m.name}
-          loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
-        />
+        <MemberImage m={m} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--navy)]/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <div className="absolute inset-x-0 bottom-0 p-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
           <p className="text-white text-label">{m.role}</p>
@@ -359,7 +443,7 @@ function OfficerCard({ m }: { m: (typeof officers)[0] }) {
         </p>
         <div className="mt-4 pt-4 border-t border-[var(--border)]">
           <p className="text-caption text-[var(--slate)] italic line-clamp-2">
-            "{m.quote}"
+            {m.quote ? `"${m.quote}"` : ""}
           </p>
         </div>
         {m.email && (
@@ -376,19 +460,14 @@ function OfficerCard({ m }: { m: (typeof officers)[0] }) {
 }
 
 // ── Simple photo card (exec members, advisory, PPC) ───────────────────────────
-function PhotoCard({ m }: { m: { name: string; role: string; photo: string } }) {
+function PhotoCard({ m }: { m: BoardMember }) {
   return (
     <motion.div
       variants={cardItem}
       className="group bg-white rounded-2xl border-2 border-[var(--border)] overflow-hidden hover:border-[var(--navy)] hover:shadow-lg transition-all duration-300"
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-[var(--muted)]">
-        <img
-          src={m.photo}
-          alt={m.name}
-          loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
-        />
+        <MemberImage m={m} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--navy)]/70 via-[var(--navy)]/10 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-4">
           <p className="text-white text-body font-semibold line-clamp-1">
@@ -405,35 +484,31 @@ function PhotoCard({ m }: { m: { name: string; role: string; photo: string } }) 
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 function BoardMembersPage() {
-  const [boardItems, setBoardItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [backendMembers, setBackendMembers] = useState<BoardMember[]>([]);
 
   useEffect(() => {
-    fetch("/api/board")
-      .then((res) => res.json())
-      .then((data) => {
-        setBoardItems(Array.isArray(data) ? data : []);
-        setLoading(false);
+    const controller = new AbortController();
+
+    fetch("/api/board", { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((rows) => {
+        if (Array.isArray(rows)) setBackendMembers(rows);
       })
-      .catch((err) => {
-        console.error("Failed to fetch board members:", err);
-        setBoardItems([]);
-        setLoading(false);
+      .catch((error) => {
+        if (error.name !== "AbortError") setBackendMembers([]);
       });
+
+    return () => controller.abort();
   }, []);
 
-  const officersList = boardItems.filter((b) => b.category === "officer");
-  const execList = boardItems.filter((b) => b.category === "executive");
-  const advisoryList = boardItems.filter((b) => b.category === "advisory");
-  const ppcList = boardItems.filter((b) => b.category === "past-presidential");
-
-  const presidentOfficer = officersList.find((b) => b.role === "President");
-  const restOfficers = officersList.filter((b) => b.role !== "President");
+  const groups = useMemo(() => groupBoardMembers(backendMembers), [backendMembers]);
+  const presidentOfficer = groups.officers.find((b) => b.role === "President");
+  const restOfficers = groups.officers.filter((b) => b.role !== "President");
 
   return (
     <>
       <PageHeader
-        eyebrow="Executive Board 2024–2026"
+        eyebrow="Executive Board 2026 onwards"
         title={
           <>
             Current Board <span className="text-[var(--gold)]">Members</span>
@@ -443,93 +518,64 @@ function BoardMembersPage() {
       />
 
       <section className="container-page py-14 pb-24">
-        {loading ? (
-          <div className="flex items-center justify-center py-24 text-[var(--slate)]">
-            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-            <span className="text-sm">Loading board members…</span>
-          </div>
-        ) : (
-          <>
-            {/* ── President ── */}
-            {presidentOfficer && (
-              <PresidentCard
-                m={{ ...presidentOfficer, photo: presidentOfficer.image_url || president }}
-              />
-            )}
+        {/* ── President ── */}
+        {presidentOfficer && <PresidentCard m={presidentOfficer} />}
 
-            {/* ── Officers ── */}
-            {restOfficers.length > 0 && (
-              <>
-                <SectionDivider label="Executive Officers" icon={CrownIcon} />
-                <motion.div
-                  variants={container}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true, margin: "-60px" }}
-                  className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                >
-                  {restOfficers.map((m) => (
-                    <OfficerCard key={m.id} m={{ ...m, photo: m.image_url || vp1 }} />
-                  ))}
-                </motion.div>
-              </>
-            )}
+        {/* ── Officers ── */}
+        <SectionDivider label="Executive Officers" icon={CrownIcon} />
+        <motion.div
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-60px" }}
+          className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        >
+          {restOfficers.map((m) => (
+            <OfficerCard key={m.name} m={m} />
+          ))}
+        </motion.div>
 
-            {/* ── Executive Members ── */}
-            {execList.length > 0 && (
-              <>
-                <SectionDivider label="Executive Members" icon={Users} />
-                <motion.div
-                  variants={container}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true, margin: "-60px" }}
-                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
-                >
-                  {execList.map((m) => (
-                    <PhotoCard key={m.id} m={{ ...m, photo: m.image_url || mem11 }} />
-                  ))}
-                </motion.div>
-              </>
-            )}
+        {/* ── Executive Members ── */}
+        <SectionDivider label="Executive Members" icon={Users} />
+        <motion.div
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-60px" }}
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+        >
+          {groups.executive.map((m) => (
+            <PhotoCard key={m.name} m={m} />
+          ))}
+        </motion.div>
 
-            {/* ── Advisory Board ── */}
-            {advisoryList.length > 0 && (
-              <>
-                <SectionDivider label="Advisory Board Members" icon={Shield} />
-                <motion.div
-                  variants={container}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true, margin: "-60px" }}
-                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
-                >
-                  {advisoryList.map((m) => (
-                    <PhotoCard key={m.id} m={{ ...m, photo: m.image_url || arunL }} />
-                  ))}
-                </motion.div>
-              </>
-            )}
+        {/* ── Advisory Board ── */}
+        <SectionDivider label="Advisory Board Members" icon={Shield} />
+        <motion.div
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-60px" }}
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+        >
+          {groups.advisory.map((m) => (
+            <PhotoCard key={m.name} m={m} />
+          ))}
+        </motion.div>
 
-            {/* ── Past Presidential Council ── */}
-            {ppcList.length > 0 && (
-              <>
-                <SectionDivider label="Past Presidential Council" icon={Star} />
-                <motion.div
-                  variants={container}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true, margin: "-60px" }}
-                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
-                >
-                  {ppcList.map((m) => (
-                    <PhotoCard key={m.id} m={{ ...m, photo: m.image_url || deepakG }} />
-                  ))}
-                </motion.div>
-              </>
-            )}
-          </>
-        )}
+        {/* ── Past Presidential Council ── */}
+        <SectionDivider label="Past Presidential Council" icon={Star} />
+        <motion.div
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-60px" }}
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
+        >
+          {groups.pastPresidential.map((m) => (
+            <PhotoCard key={m.name} m={m} />
+          ))}
+        </motion.div>
 
         {/* ── Bottom CTA ── */}
         <div className="mt-16 rounded-2xl bg-[var(--navy)] text-white p-10 md:p-14 relative overflow-hidden">

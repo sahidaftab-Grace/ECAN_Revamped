@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const multer = require('multer')
 const path = require('path')
+const fs = require('fs')
 const { authenticate } = require('../middleware/auth')
 
 // Configure Storage
@@ -25,6 +26,61 @@ const upload = multer({
     } else {
       cb(new Error('Images Only!'))
     }
+  }
+})
+
+const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'])
+
+function listImages(dir, urlPrefix = '/uploads') {
+  if (!fs.existsSync(dir)) return []
+
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const fullPath = path.join(dir, entry.name)
+    const urlPath = `${urlPrefix}/${entry.name}`
+
+    if (entry.isDirectory()) {
+      return listImages(fullPath, urlPath)
+    }
+
+    const ext = path.extname(entry.name).toLowerCase()
+    if (!imageExtensions.has(ext)) return []
+
+    const stats = fs.statSync(fullPath)
+    return [{
+      filename: entry.name,
+      url: urlPath,
+      source: urlPrefix.startsWith('/assets') ? 'site-assets' : 'uploads',
+      size: stats.size,
+      updated_at: stats.mtime,
+    }]
+  })
+}
+
+// GET uploaded and built site image library for admin selectors
+router.get('/images', authenticate, (req, res) => {
+  try {
+    const serverRoot = path.join(__dirname, '..')
+    const appRoot = path.join(serverRoot, '..')
+    const imageSources = [
+      { dir: path.join(serverRoot, 'uploads'), urlPrefix: '/uploads' },
+      { dir: path.join(appRoot, 'dist', 'assets'), urlPrefix: '/assets' },
+    ]
+
+    const seenUrls = new Set()
+    const images = imageSources
+      .flatMap(({ dir, urlPrefix }) => listImages(dir, urlPrefix))
+      .filter((image) => {
+        if (seenUrls.has(image.url)) return false
+        seenUrls.add(image.url)
+        return true
+      })
+      .sort((a, b) => {
+        if (a.source !== b.source) return a.source === 'uploads' ? -1 : 1
+        return new Date(b.updated_at) - new Date(a.updated_at)
+      })
+    res.json(images)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
   }
 })
 

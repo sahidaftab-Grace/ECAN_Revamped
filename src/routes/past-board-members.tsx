@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Crown, Users } from "lucide-react";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -10,7 +10,69 @@ export const Route = createFileRoute("/past-board-members")({
 });
 
 function PastBoardMembersPage() {
-  const [openTerm, setOpenTerm] = useState<string>(pastBoards[0].term);
+  const [pastBoardRows, setPastBoardRows] = useState<any[]>([]);
+  const [openTerm, setOpenTerm] = useState<string>("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/past-board")
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed to load past boards"))))
+      .then((rows) => {
+        if (!cancelled && Array.isArray(rows)) setPastBoardRows(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setPastBoardRows([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const editablePastBoards = useMemo(() => {
+    if (!pastBoardRows.length) return pastBoards;
+
+    const groups = new Map<string, any>();
+    pastBoardRows.forEach((row) => {
+      const term = row.term || "Past Term";
+      if (!groups.has(term)) {
+        groups.set(term, {
+          term,
+          term_sort_order: row.term_sort_order ?? 0,
+          president: "",
+          members: [],
+        });
+      }
+
+      const group = groups.get(term);
+      const member = {
+        name: row.name,
+        role: row.role,
+        image: row.image_url || "",
+        sort_order: row.sort_order ?? 0,
+      };
+
+      group.members.push(member);
+      if (!group.president && row.role?.toLowerCase() === "president") {
+        group.president = row.name;
+      }
+    });
+
+    return Array.from(groups.values())
+      .map((group) => ({
+        ...group,
+        president: group.president || group.members[0]?.name || "",
+        members: group.members.sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
+      }))
+      .sort((a, b) => (a.term_sort_order ?? 0) - (b.term_sort_order ?? 0));
+  }, [pastBoardRows]);
+
+  useEffect(() => {
+    if (!openTerm && editablePastBoards[0]?.term) {
+      setOpenTerm(editablePastBoards[0].term);
+    }
+  }, [editablePastBoards, openTerm]);
 
   return (
     <>
@@ -27,7 +89,7 @@ function PastBoardMembersPage() {
       <section className="container-page py-12 pb-24 max-w-4xl">
         {/* Timeline nav */}
         <div className="flex flex-wrap gap-2 mb-10">
-          {pastBoards.map((pb) => (
+          {editablePastBoards.map((pb) => (
             <button
               key={pb.term}
               onClick={() => setOpenTerm(pb.term)}
@@ -44,7 +106,7 @@ function PastBoardMembersPage() {
 
         {/* Accordion */}
         <div className="space-y-4">
-          {pastBoards.map((pb) => {
+          {editablePastBoards.map((pb) => {
             const isOpen = openTerm === pb.term;
             return (
               <div

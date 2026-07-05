@@ -22,19 +22,7 @@ export const Route = createFileRoute("/news_/$id")({
   loader: async ({ params }: { params: { id: string } }) => {
     const { id } = params;
 
-    try {
-      const res = await fetch(`/api/news/${id}`);
-      if (!res.ok) throw new Error("Not found");
-      const data = await res.json();
-      return {
-        _source: "db" as const,
-        ...data,
-        layout: (data.layout ?? "classic") as "classic" | "hero-image" | "split" | "magazine",
-        images: (data.images ?? []) as string[],
-        cover_image: (data.cover_image ?? null) as string | null,
-      };
-    } catch (err) {
-      // Fall back to static data if API fails or item not found in DB
+    const getStaticFallback = () => {
       const item = newsItems.find((n) => n.id === id);
       if (!item) throw notFound();
       return {
@@ -44,7 +32,26 @@ export const Route = createFileRoute("/news_/$id")({
         images: (item.images ?? []) as string[],
         cover_image: (item.image ?? null) as string | null,
       };
+    };
+
+    let res: Response;
+    try {
+      res = await fetch(`/api/news/${id}`);
+    } catch (err: any) {
+      return getStaticFallback();
     }
+
+    if (res.status === 404) throw notFound();
+    if (!res.ok) return getStaticFallback();
+
+    const data = await res.json();
+    return {
+      _source: "db" as const,
+      ...data,
+      layout: (data.layout ?? "classic") as "classic" | "hero-image" | "split" | "magazine",
+      images: (data.images ?? []) as string[],
+      cover_image: (data.cover_image ?? null) as string | null,
+    };
   },
   head: ({ loaderData }: { loaderData: any }) => ({
     meta: [{ title: `${loaderData?.title} — ECAN News` }],
